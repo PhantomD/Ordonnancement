@@ -1,0 +1,39 @@
+L’heuristique TSS est la principale heuristique présentée dans l’article. Il s’agit d’une méthode incré-
+mentale qui construit, itérations après itérations, une séquence que l’on espère la plus optimale possible en
+se basant sur un critère discriminant.
+Cette méthode est comparable à l’heuristique NEH qui construit également une séquence finale en pla-
+çant les travaux d’une séquence initiale à différents endroits dans le but de satisfaire le critère discriminant.
+Dans NEH, ce critère discriminant est le
+makespan
+final. Ceci correspond au temps total nécessaire à
+l’exécution de tous les travaux sur toutes les machines. Dans l’heuristique TSS, le critère, bien que différent,
+fait également intervenir le
+makespan
+et est présenté comme suit : Cr = min(Cpmax + SomT psIn − SomT psEx)
+Avec : –Cr: Le critère discriminant à minimiser pour une séquence partielle donnée.
+–Cpmax: Le makespan de la séquence partielle en cours.
+–SomT psIn : Correspond à la somme des temps d’inactivités sur une machine. Ces temps peuvent
+soit être des temps d’attente, soit des temps de blocage liés à une contrainte.
+–SomT psEx: Correspond à la somme des temps d’exécution des travaux déjà placés dans l’ordon-
+nancement partiel. Soit ni=1(i de 1 à n)  mj =1(j de 1 à m) Pi,j avec Pi,j: la durée d’exécution du travail Ji sur la machine Mj
+L’algorithme de l’heuristique TSS est décrit ci-après. Il s’agit de la version présentée dans l’article, mais
+que nous avons remaniée, traduite et commentée pour une meilleure compréhension :
+Afin de savoir si cette heuristique donne des résultats satisfaisants, l’efficacité de cet algorithme sera
+comparée à celle de l’heuristique NEH dans le chapitre suivant
+
+
+DONNÉE : n= Nombre de travaux
+1:POUR i DE 1 À n FAIRE
+2: On place le travail Ji en premier
+3: TANTQUE (Il reste des travaux à placer) FAIRE
+4: POUR k DE 1À ( n- nombre de travaux déjà placés) FAIRE
+5:Pour Jk qui serait placé après Ji:
+6:- Calcul de Cpmax,SomT psIn,SomT psEx
+7:- Mémorisation du Cr
+8: FIN POUR
+9:On place après Ji le travail Jk ayant le plus petit Cr
+10:FIN TANTQUE
+11:Calcul de Cmax,i/∗makespan de la séquence finale commençant par le travail
+Ji∗/
+12:FIN POUR
+13:RETOURNER L’ordonnancement Cmax,i donnant le plus petit makespan

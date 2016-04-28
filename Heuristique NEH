@@ -1,0 +1,41 @@
+Toutes les contraintes ainsi que leurs spécificités énoncées dans les sections précédentes représentent
+des cas de flowshop qui existent dans le milieu industriel.
+Maintenant, pour des problèmes de flowshop dans lesquels le nombre de travaux et de machines est
+important et que le vecteur de contrainte associé met en jeu chacune de ces contraintes de manière aléatoire
+et répétitive, l’enjeu est de trouver des heuristiques efficaces et rapides dans le but de minimiser un critère
+qui est le makespan, c’est à dire la date finale de fin de traitement de tous les travaux sur toutes les machines.
+Dans les sections suivantes, nous expliciterons les heuristiques présentées dans l’article permettant de
+répondre à cette problématique.
+
+
+2.3.1  NEH Improvement
+NEH Improvement est une heuristique basée sur le principe de l’heuristique NEH. NEH est une heu-
+ristique très connue dans le domaine de l’ordonnancement de flowshop puisque celle-ci permet d’obtenir
+des résultats efficaces et est très simple à implémenter. NEH Improvement utilise la séquence d’ordonnan-
+cement crée par NEH pour améliorer son makespan en testant toutes les positions possibles pour un job,
+sans modifier l’ordre relatif entre les autres jobs.
+Cette heuristique est définie par l’algorithme suivant 
+
+
+
+
+DONNÉE : n= Nombre de travaux
+1:Soit J←(j1,j2...jn) l’ordonnancement des jobs obtenus par l’heuristique NEH
+2:Cpmax: entier représentant le Cmax le plus petit connu lors du placement d’un job
+3:TANTQUE Amélioration du makespan FAIRE
+4:Mise à jour de l’ordre des jobs à placer qui sont dans J
+5:POUR i DE 1 À n FAIRE
+6:On sélectionne le job ji dans J
+7:Cpmax←∞
+8:POUR k DE 1 À n FAIRE
+9:On place le job ji à la position k dans la séquence J partielle sans changer l’ordre relatif des autres jobs déjà placés
+10:Calcul de Cmax de la séquence J partielle
+11:SI Cmax < Cpmax ALORS
+12:Best k ← k             /****** Geoffrey: Best => Meilleur **********/
+13: Cpmax ← Cmax
+14: FIN SI 
+15: FIN POUR
+16: On place le job ji à la position Best k dans J
+17:FIN POUR
+18:FIN TANTQUE
+19:RETOURNER L’ordonnancement de la séquence donnant le plus petit makespan
