@@ -19,6 +19,7 @@ struct Machine {
 struct Job {
     int id;
     float* duree;
+    float ci  ; //date de fin;
 };
 
 
@@ -51,9 +52,28 @@ void affichage(Job* jobs, Machine* machines, int n_j, int n_m){
     }
 
     printf("**********\n");
-
-
 }
+
+
+/**
+ * @brief f fonction objective
+ * @param jobs tableau des jobs
+ * @param i nombre de jobs
+ * @return
+ */
+int f(Job* jobs, int i){
+
+    int res = 0, j;
+
+    for(j=0; j < i ; j++){
+        res+= jobs[j].ci;
+    }
+    return res ;
+}
+
+
+
+
 
 
 int main(){
