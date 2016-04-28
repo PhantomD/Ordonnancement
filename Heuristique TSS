@@ -1,0 +1,15 @@
+DONNÉE : n= Nombre de travaux
+1:POUR i DE 1 À n FAIRE
+2: On place le travail Ji en premier
+3: TANTQUE (Il reste des travaux à placer) FAIRE
+4: POUR k DE 1À ( n- nombre de travaux déjà placés) FAIRE
+5:Pour Jk qui serait placé après Ji:
+6:- Calcul de Cpmax,SomT psIn,SomT psEx
+7:- Mémorisation du Cr
+8: FIN POUR
+9:On place après Ji le travail Jk ayant le plus petit Cr
+10:FIN TANTQUE
+11:Calcul de Cmax,i/∗makespan de la séquence finale commençant par le travail
+Ji∗/
+12:FIN POUR
+13:RETOURNER L’ordonnancement Cmax,i donnant le plus petit makespan
