@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <stdbool.h>
 
 
 
@@ -25,10 +26,12 @@ struct Job {
 };
 
 struct Horaire{
-    int debut;
-    int fin;
+    float debut;
+    float fin;
     int id;
+    bool attente;
 };
+
 
 
 /**
@@ -48,7 +51,7 @@ void affichage(Job* jobs, Machine* machines, int n_j, int n_m){
 
         printf("job : id = %d , duree = [ ", jo.id);
         for(j = 0 ; j < n_m ; j++){ // affichage durée
-            printf("%f, ",jo.duree[i]);
+            printf("%f, ",jo.duree[j]);
         }
         printf("] \n");
     }
@@ -60,6 +63,35 @@ void affichage(Job* jobs, Machine* machines, int n_j, int n_m){
     }
 
     printf("**********\n");
+}
+
+
+int count(void **tab)
+{
+      int i;
+
+     for (i = 0; tab[i]; i++)
+            ;
+     return (i);
+}
+
+void affichageTableauOrdonnance(Horaire** tab, int job, int machine, Machine* machines){
+    int i, j ;
+    printf("****affichage tableau ******\n");
+    for (i = 0 ; i < machine ; i++){
+        Machine m = machines[i];
+        printf("Machine : id = %d \n", m.id);
+        for(j = 0 ; j < count(tab[i]); j++){
+            Horaire horaire = tab[i][j];
+            if(horaire.attente)
+                printf("Horaire de %f à %f en attente \n",horaire.debut,horaire.fin);
+            else
+                printf("Travail sur l'Horaire de %f à %f sur le job %d \n",horaire.debut,horaire.fin,horaire.id);
+        }
+        printf("\n");
+    }
+
+
 }
 
 
@@ -143,16 +175,58 @@ Calculer le Cmax de l’ordonnancement partiel formé.
         }
 */
 
+
+
 /**
  * @brief heuristique_TSS
- * Heuristique partant d'une solution partielle et choissant le meilleur job suivant, selon certaines condtions
+ * Heuristique partant d'une solution partielle et choissant le meilleur job suivant, selon certaines conditions
  */
-/*void heuristique_TSS(int job, int machines){
-    for(int i = 0 ; i < job ; i++){
+Horaire** heuristique_TSS(Job* jobs, Machine* machines, Horaire** tab, int job, int machine){
+    int i,j,k,t;
+    float pause =0;
+    float cpmax,somtpsin,somtpsex;
+    int jobplace = 0;
+    for(i = 0 ; i < job ; i++){
+        for(j = 0 ; j< machine ; j++){
+            for(k = 0 ; k<j ;k++){
+                Job jtmp = jobs[i];
+                pause += jtmp.duree[k];
+            }
+            if(j==0){
+                Horaire htmp;
+                Job jtmp = jobs[i];
+                htmp.debut = 0;
+                htmp.attente = false;
+                htmp.fin = jtmp.duree[j] + htmp.debut;
+                htmp.id = jtmp.id;
+                tab[j][0]  = htmp;
+            }
+            else{
+                 Horaire htmp;
+                 htmp.attente = true;
+                 htmp.debut=0;
+                 htmp.fin = pause +  htmp.debut;
+                 pause = 0;
+                 tab[j][0] = htmp;
+                 Job jtmp = jobs[i];
+                 Horaire htmpprec = tab[j][0];
+                 htmp.debut = htmpprec.fin;
+                 htmp.attente = false;
+                 htmp.fin = jtmp.duree[j] + htmp.debut;
+                 htmp.id = jtmp.id;
+                 tab[j][1]  = htmp;
+            }
+        }
+       /* while(job - 1 - jobplace != 0){
+            for(t = 1 ;t<job - jobplace; t++){
+
+            }
+        }*/
 
     }
+    return tab;
 
-}*/
+}
 
 /**
  * @brief allocfloat2
@@ -187,9 +261,9 @@ int **allocfloat2(int nb1, int nb2)
 
 int main(){
 
-    int j = 1; //Jobs
-    int m = 2; //Machines
-    int** tab = allocfloat2(m,j*2); // tableau final à ordonnancer  j*2 = nb job + pause entre job
+    int j = 2; //Jobs
+    int m = 6; //Machines
+    Horaire** tab = allocfloat2(m,j*2); // tableau final à ordonnancer  j*2 = nb job + pause entre job
     Job* jobs = malloc(j*sizeof(Job));
     Machine* machines = malloc(m*sizeof(Machine));
 
@@ -200,10 +274,10 @@ int main(){
 
     for (i = 1 ; i <= j ; i++){  // instanciation jobs
         Job jo ;
-        jo.id = 5;
+        jo.id = i;
         jo.duree = malloc(sizeof(int)*m);
         for(k = 0 ; k < m ; k++){ // instanciations durées pour chaque job
-            jo.duree[k] = rand();
+            jo.duree[k] = rand()%(10-1)+1;
         }
         jobs[i-1] = jo;
     }
@@ -211,12 +285,15 @@ int main(){
     for (i = 1 ; i <= m ; i++){ //instanciation machine
         Machine machine ;
         machine.id = i;
-        machine.Si = rand();
-        machine.Ti = rand();
+        machine.Si = rand()%(20-1)+1;
+        machine.Ti = rand()%(20-(int)(machine.Si+1))+(int)(machine.Si+1);
         machines[i-1]= machine ;
     }
 
-    affichage(jobs, machines, j , m);
+
+   affichage(jobs, machines, j , m);
+   tab = heuristique_TSS(jobs,machines,tab,j,m);
+   affichageTableauOrdonnance(tab,j,m,machines);
 
 
     // libération mémoire
