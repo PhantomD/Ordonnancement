@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <limits>
 
 
 typedef struct Machine Machine;
@@ -71,7 +72,69 @@ int f(Job* jobs, int i){
     return res ;
 }
 
+void tricroissant( int tab[], int tab_size)
+{
+  int i=0;
+  int tmp=0;
+  int j=0;
 
+  for(i = 0; i < tab_size; i++)
+    {
+      for(j = i+1; j < tab_size; j++)
+        {
+          if(tab[j] < tab[i])
+            {
+              tmp = tab[i];
+              tab[i] = tab[j];
+              tab[j] = tmp;
+            }
+        }
+    }
+}
+
+void tridecroissant( int tab[], int tab_size)
+{
+  int i=0;
+  int tmp=0;
+  int j=0;
+
+  for(i = 0; i < tab_size; i++)
+    {
+      for(j = i+1; j < tab_size; j++)
+        {
+          if(tab[j] > tab[i])
+            {
+              tmp = tab[i];
+              tab[i] = tab[j];
+              tab[j] = tmp;
+            }
+        }
+    }
+}
+
+/*
+// jobs tableau des jobs
+// Liste_jobs liste des jobs
+    for(int a = 0; a < nbre_job; a++) jobs[a] = jo.duree;
+    tridecroissant(jobs, nbre_job);
+    for(int b = 0; b < jobs.length; b++) liste_job.add(jobs[b]);
+    for(int i = 0; i < N; i++)
+        {
+            Cpmax = 9999999;
+            for(int k = 1; k < i; k++)
+            {
+
+Placer le job Ji à la position k dans la séquence partielle sans changer la position relative des autres jobs déjà placés.
+Calculer le Cmax de l’ordonnancement partiel formé.
+
+                if(Cmax< Cpmax)
+                {
+                    Best_k = k;
+                    Cpmax = Cmax;
+                }
+            }
+        }
+*/
 
 
 
