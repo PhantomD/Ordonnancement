@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <limits>
+
 
 
 typedef struct Machine Machine;
 typedef struct Job Job ;
+typedef struct Horaire Horaire ;
 
 
 
@@ -21,6 +22,12 @@ struct Job {
     int id;
     float* duree;
     float ci  ; //date de fin;
+};
+
+struct Horaire{
+    int debut;
+    int fin;
+    int id;
 };
 
 
@@ -136,6 +143,45 @@ Calculer le Cmax de l’ordonnancement partiel formé.
         }
 */
 
+/**
+ * @brief heuristique_TSS
+ * Heuristique partant d'une solution partielle et choissant le meilleur job suivant, selon certaines condtions
+ */
+/*void heuristique_TSS(int job, int machines){
+    for(int i = 0 ; i < job ; i++){
+
+    }
+
+}*/
+
+/**
+ * @brief allocfloat2
+ * @param nb1 premiere dimension
+ * @param nb2 deuxieme dimension
+ * @return
+ * Permet d'allouer de la mémoire pour un tableau a deux dimensions
+ */
+int **allocfloat2(int nb1, int nb2)
+{
+  int **p;
+  int i;
+
+  p = (int **) malloc(sizeof(int *) * nb1);
+  if(p == NULL) {
+    fprintf(stderr,"erreur malloc 2\n");
+    exit(EXIT_FAILURE);
+  }
+
+  for(i=0;i<nb1;i++) {
+    p[i] = malloc(sizeof(Horaire) * nb2);
+    if(p[i] == NULL) {
+      fprintf(stderr,"erreur malloc 3\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+  return(p);
+}
+
 
 
 
@@ -143,7 +189,7 @@ int main(){
 
     int j = 1; //Jobs
     int m = 2; //Machines
-    int* tab = malloc(m*j*sizeof(int)); // tableau final à ordonnancer
+    int** tab = allocfloat2(m,j*2); // tableau final à ordonnancer  j*2 = nb job + pause entre job
     Job* jobs = malloc(j*sizeof(Job));
     Machine* machines = malloc(m*sizeof(Machine));
 
