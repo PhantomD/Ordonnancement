@@ -95,22 +95,21 @@ int count(void **tab)
      return (i);
 }
 
-void affichageTableauOrdonnance(Horaire** tab, int job, int machine, Machine* machines){
+void affichageTableauOrdonnance(Horaire** tab, int job, int machine, Machine* machines, int* nbJobMachine){
     int i, j ;
     printf("****affichage tableau ******\n");
     for (i = 0 ; i < machine ; i++){
         Machine m = machines[i];
         printf("Machine : id = %d \n", m.id);
-        for(j = 0 ; j < count(tab[i]); j++){
+        for(j = 0 ; j < nbJobMachine[i]; j++){
             Horaire horaire = tab[i][j];
             if(horaire.attente)
-                printf("Horaire de %f à %f en attente \n",horaire.debut,horaire.fin);
+                printf("Horaire de %.2f h à %.2f h en attente \n",horaire.debut,horaire.fin);
             else
-                printf("Travail sur l'Horaire de %f à %f sur le job %d \n",horaire.debut,horaire.fin,horaire.id);
+                printf("Travail sur l'Horaire de %.2f h a %.2f h sur le job %d \n",horaire.debut,horaire.fin,horaire.id);
         }
         printf("\n");
     }
-
 
 }
 
@@ -281,12 +280,21 @@ Calculer le Cmax de l’ordonnancement partiel formé.
  * @brief heuristique_TSS
  * Heuristique partant d'une solution partielle et choissant le meilleur job suivant, selon certaines conditions
  */
-Horaire** heuristique_TSS(Job* jobs, Machine* machines, Horaire** tab, int job, int machine){
-    int i,j,k,t;
+Horaire** heuristique_TSS(Job* jobs, Machine* machines, Horaire** tab, int job, int machine, int* nbJobMachine){
+    int i,j,k,t,g;
+    for(i = 0; i< machine; i++){
+        nbJobMachine[i] = 0;
+    }
     float pause =0;
-    float cpmax,somtpsin,somtpsex;
+    float somtpsin =0;
+    float somtpsex= 0;
+    float dureeajoute = 0;
+    float cpmax = 0;
     int jobplace = 0;
+    int crt = 50000;
+    int crtj;
     for(i = 0 ; i < job ; i++){
+        // on place le job Ji
         for(j = 0 ; j< machine ; j++){
             for(k = 0 ; k<j ;k++){
                 Job jtmp = jobs[i];
@@ -299,7 +307,8 @@ Horaire** heuristique_TSS(Job* jobs, Machine* machines, Horaire** tab, int job, 
                 htmp.attente = false;
                 htmp.fin = jtmp.duree[j] + htmp.debut;
                 htmp.id = jtmp.id;
-                tab[j][0]  = htmp;
+                tab[j][nbJobMachine[j]] = htmp;
+                nbJobMachine[j]++;
             }
             else{
                  Horaire htmp;
@@ -307,21 +316,89 @@ Horaire** heuristique_TSS(Job* jobs, Machine* machines, Horaire** tab, int job, 
                  htmp.debut=0;
                  htmp.fin = pause +  htmp.debut;
                  pause = 0;
-                 tab[j][0] = htmp;
+                 tab[j][nbJobMachine[j]] = htmp;
+                 nbJobMachine[j]++;
                  Job jtmp = jobs[i];
                  Horaire htmpprec = tab[j][0];
                  htmp.debut = htmpprec.fin;
                  htmp.attente = false;
                  htmp.fin = jtmp.duree[j] + htmp.debut;
                  htmp.id = jtmp.id;
-                 tab[j][1]  = htmp;
+                 tab[j][nbJobMachine[j]]  = htmp;
+                 nbJobMachine[j]++;
             }
         }
-       /* while(job - 1 - jobplace != 0){
+        while(job - 1 - jobplace > 0){
             for(t = 1 ;t<job - jobplace; t++){
+                somtpsex = 0;
+                somtpsin = 0;
+                cpmax = 0;
+                Job jtmp = jobs[t];
+                for(j = 0 ; j<machine; j++){
+                    pause = 0;
+                    for(k = 0 ; k<j ;k++){
+                        pause += jtmp.duree[k];
+                    }
 
+                    for(g=0 ; g<nbJobMachine[j]; g++){
+                        Horaire htmp = tab[j][g];
+                        if(htmp.attente)
+                            somtpsin += htmp.fin - htmp.debut;
+                        else
+                            somtpsex += htmp.fin - htmp.debut;
+                    }
+                    Horaire htmp = tab[j][nbJobMachine[j]-1];
+                    dureeajoute = jtmp.duree[j] + htmp.fin + pause;
+                    somtpsin+= pause;
+                    somtpsex+=jtmp.duree[j];
+                    if(dureeajoute>cpmax){
+                        cpmax = dureeajoute;
+                    }
+                }
+                if((cpmax + somtpsin - somtpsex) < crt){
+                    crt = (cpmax + somtpsin - somtpsex);
+                    crtj = t;
+                }
             }
-        }*/
+            for(j = 0 ; j< machine ; j++){
+                pause = 0;
+                for(k = 0 ; k<j ;k++){
+                    Job jtmp = jobs[crtj];
+                    pause += jtmp.duree[k];
+                }
+                if(j==0){
+                    Horaire htmp;
+                    Horaire htmpprec = tab[j][nbJobMachine[j]-1];
+                    Job jtmp = jobs[crtj];
+                    htmp.debut = htmpprec.fin;
+                    htmp.attente = false;
+                    htmp.fin = jtmp.duree[j] + htmp.debut;
+                    htmp.id = jtmp.id;
+                    tab[j][nbJobMachine[j]] = htmp;
+                    nbJobMachine[j]++;
+                }
+                else{
+                     Horaire htmp;
+                     Horaire htmpprec = tab[j][nbJobMachine[j]-1];
+                     htmp.attente = true;
+                     htmp.debut=htmpprec.fin;
+                     htmp.fin = pause +  htmp.debut;
+                     pause = 0;
+                     tab[j][nbJobMachine[j]] = htmp;
+                     nbJobMachine[j]++;
+                     Job jtmp = jobs[crtj];
+                     htmpprec = tab[j][nbJobMachine[j]-1];
+                     htmp.debut = htmpprec.fin;
+                     htmp.attente = false;
+                     htmp.fin = jtmp.duree[j] + htmp.debut;
+                     htmp.id = jtmp.id;
+                     tab[j][nbJobMachine[j]]  = htmp;
+                     nbJobMachine[j]++;
+                }
+            }
+            jobplace++;
+           // A FAIRE  jobs = supprimerElement(jobs, crtj, j);
+        }
 
     }
     return tab;
@@ -361,8 +438,8 @@ int **allocfloat2(int nb1, int nb2)
 
 int main(){
 
-    int j = 1; //Jobs
-    int m = 5; //Machines
+    int j = 2; //Jobs
+    int m = 4; //Machines
     Horaire** tab = allocfloat2(m,j*2); // tableau final à ordonnancer  j*2 = nb job + pause entre job
     Job* jobs = malloc(j*sizeof(Job));
     Machine* machines = malloc(m*sizeof(Machine));
@@ -392,11 +469,13 @@ int main(){
 
 
    affichage(jobs, machines, j , m);
-   tab = heuristique_TSS(jobs,machines,tab,j,m);
-  // affichageTableauOrdonnance(tab,j,m,machines);
+   int* nbJobMachine = malloc(m*sizeof(int));
+   tab = heuristique_TSS(jobs,machines,tab,j,m,nbJobMachine);
+   //affichageTableauOrdonnance(tab,j,m,machines,nbJobMachine);
 
     tab = heuristique_NEH(jobs, machines,tab,j,m);
-    //affichageTableauOrdonnance(tab,j,m,machines);
+    //affichageTableauOrdonnance(tab,j,m,machines,nbJobMachine);
+
     // libération mémoire
     free(tab);
 
