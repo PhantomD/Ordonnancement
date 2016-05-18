@@ -8,8 +8,9 @@
 typedef struct Machine Machine;
 typedef struct Job Job ;
 typedef struct Horaire Horaire ;
-
-
+typedef struct Element Element;
+typedef Element* llist;
+typedef struct Liste Liste;
 
 
 struct Machine {
@@ -31,6 +32,25 @@ struct Horaire{
     int id;
     bool attente;
 };
+
+
+
+struct Element
+{
+    int nombre;
+    Element *suivant;
+};
+
+
+struct Liste
+{
+    Element *premier;
+    Element *dernier;
+};
+
+
+
+
 
 
 
@@ -95,6 +115,7 @@ void affichageTableauOrdonnance(Horaire** tab, int job, int machine, Machine* ma
 }
 
 
+
 /**
  * @brief f fonction objective
  * @param jobs tableau des jobs
@@ -131,31 +152,110 @@ void tricroissant( int tab[], int tab_size)
     }
 }
 
-void tridecroissant( int tab[], int tab_size)
+void tridecroissant(Job* jobs)
 {
-  int i=0;
-  int tmp=0;
-  int j=0;
-
-  for(i = 0; i < tab_size; i++)
+  int i=0, tmp=0, j=0;
+  for(i = 0; i < sizeof(jobs); i++)
     {
-      for(j = i+1; j < tab_size; j++)
-        {
-          if(tab[j] > tab[i])
+        Job jtmp = jobs[i];
+        if(jtmp.duree[i] < jtmp.duree[i+1])
             {
-              tmp = tab[i];
-              tab[i] = tab[j];
-              tab[j] = tmp;
+              tmp = jtmp.duree[i];
+              jtmp.duree[i] = jtmp.duree[j];
+              jtmp.duree[j] = tmp;
             }
         }
-    }
+
 }
 
-/*
-// jobs tableau des jobs
-// Liste_jobs liste des jobs
-    for(int a = 0; a < nbre_job; a++) jobs[a] = jo.duree;
-    tridecroissant(jobs, nbre_job);
+void swap(int a, int b){
+    int tmp;
+    tmp = a;
+    a = b;
+    b = tmp;
+}
+
+Liste *initialisation()
+{
+    Liste *liste = malloc(sizeof(*liste));
+    Element *element = malloc(sizeof(*element));
+    if (liste == NULL || element == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+    element->nombre = NULL;
+    element->suivant = NULL;
+    liste->premier = NULL;
+    return liste;
+}
+
+void afficherListe(Liste *liste)
+{
+    if (liste == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+    Element *actuel = liste->premier;
+    while (actuel != NULL)
+    {
+        printf("%d -> ", actuel->nombre);
+        actuel = actuel->suivant;
+    }
+    printf("NULL\n");
+}
+
+void insertion(Liste *liste, int nvNombre)
+{
+    Element *nouveau = malloc(sizeof(*nouveau));
+    if (liste == NULL || nouveau == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+    nouveau->nombre = nvNombre;
+    nouveau->suivant = liste->premier;
+    liste->premier = nouveau;
+}
+
+/**
+ * @brief heuristique_NEH
+ * Il s'agit d'un algorithme constructif qui sélectionne le job le plus long parmi les jobs non encore placés et essaie de l’insérer dans toutes
+ *les  positions  possibles  de  la  séquence  partielle  en   cours  de  construction.  Elle  choisit  enfin  la
+ *séquence  qui  augmente  le  moins  la  durée  de  l’ordonnancement  partiel  formé  par  les  jobs  déjà placés.
+ */
+
+
+ Horaire** heuristique_NEH(Job* jobs, Machine* machines, Horaire** tab, int job, int machine){
+
+    int i = 0, j = 0, k = 0, duree_job = 0, tmp = 0, nb_job = 0 ;
+    //Liste liste_jobs = NULL;
+    Liste *liste_jobs = initialisation();
+
+    for(i = 0; i < job; i++)
+    {
+        Job jtmp = jobs[i];
+        while(machine != nb_job)
+        {
+            nb_job++;
+            for(j = 0 ; j < sizeof(jobs)+1 ; j++)
+            {
+                if(jtmp.duree[j] < jtmp.duree[j-1])
+                {
+                    tmp = jtmp.duree[j];
+                    jtmp.duree[j] = jtmp.duree[j-1];
+                    jtmp.duree[j-1] = tmp;
+                }
+                if(nb_job ==  machine){
+                printf("%f    ",jtmp.duree[j]); /****** Affiche dans ordre croissant, pour afficher dans l'ordre decroissant dans la liste ********/
+                insertion(liste_jobs, jtmp.duree[j]);
+
+                }
+            }
+
+        }
+    }
+    afficherListe(liste_jobs); /********* affiche la liste des jobs dans l'ordre décroissant de leur durée *************/
+ }
+   /* tridecroissant(jobs, job);
     for(int b = 0; b < jobs.length; b++) liste_job.add(jobs[b]);
     for(int i = 0; i < N; i++)
         {
@@ -261,8 +361,8 @@ int **allocfloat2(int nb1, int nb2)
 
 int main(){
 
-    int j = 2; //Jobs
-    int m = 6; //Machines
+    int j = 1; //Jobs
+    int m = 5; //Machines
     Horaire** tab = allocfloat2(m,j*2); // tableau final à ordonnancer  j*2 = nb job + pause entre job
     Job* jobs = malloc(j*sizeof(Job));
     Machine* machines = malloc(m*sizeof(Machine));
@@ -293,9 +393,10 @@ int main(){
 
    affichage(jobs, machines, j , m);
    tab = heuristique_TSS(jobs,machines,tab,j,m);
-   affichageTableauOrdonnance(tab,j,m,machines);
+  // affichageTableauOrdonnance(tab,j,m,machines);
 
-
+    tab = heuristique_NEH(jobs, machines,tab,j,m);
+    //affichageTableauOrdonnance(tab,j,m,machines);
     // libération mémoire
     free(tab);
 
@@ -309,3 +410,4 @@ int main(){
 
 
 }
+
